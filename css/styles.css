@@ -1,0 +1,334 @@
+/* Piano B Milano (#228) — «Il vostro Piano B.»
+   La pagina è il diagramma di flusso della serata: un solo tubo, sette valvole con la domanda; il sì entra nel serbatoio
+   della risposta, il no scende alla valvola dopo. Disegnato alla maniera del loro murale del processo della birra
+   (crema, inchiostro, tratteggio, targhette avvitate) sui colori del locale: il nero del bancone, il giallo del logo e
+   delle tovagliette, il terracotta delle pareti, il rame della torre di spillatura. */
+
+:root {
+  --ink: #1B1410;
+  --nero: #15110E;
+  --crema: #F4E8D2;
+  --carta: #FBF3E3;
+  --giallo: #F0B21F;
+  --terra: #A4402A;
+  --terra-scura: #7C2E1D;
+  --rame: #B5683A;
+  --birra: #E39A24;
+  --schiuma: #FFF4DA;
+  --f-titoli: 'Kameron', Georgia, 'Times New Roman', serif;
+  --f-targhe: 'Walter Turncoat', 'Comic Sans MS', cursive;
+  --f-testo: 'Sen', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --testata-h: 64px;
+  --gutter: 18px;
+  --tubo: 22px;
+  --tubo-x: 26px;
+  /* il tubo: inchiostro, crema, birra, crema, inchiostro (22 px) */
+  --tubo-v: linear-gradient(90deg, var(--ink) 0 3px, var(--crema) 3px 7px, var(--birra) 7px 15px, var(--crema) 15px 19px, var(--ink) 19px 22px);
+  --tubo-o: linear-gradient(180deg, var(--ink) 0 3px, var(--crema) 3px 7px, var(--birra) 7px 15px, var(--crema) 15px 19px, var(--ink) 19px 22px);
+  /* le quattro viti delle targhette */
+  --viti: radial-gradient(circle, var(--ink) 0 1.6px, transparent 2.1px) left 3px top 3px / 7px 7px no-repeat,
+          radial-gradient(circle, var(--ink) 0 1.6px, transparent 2.1px) right 3px top 3px / 7px 7px no-repeat,
+          radial-gradient(circle, var(--ink) 0 1.6px, transparent 2.1px) left 3px bottom 3px / 7px 7px no-repeat,
+          radial-gradient(circle, var(--ink) 0 1.6px, transparent 2.1px) right 3px bottom 3px / 7px 7px no-repeat;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--testata-h) + 14px); -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { margin: 0; background: var(--nero); color: var(--ink); font: 400 17px/1.62 var(--f-testo); -webkit-font-smoothing: antialiased; }
+img, svg { display: block; max-width: 100%; }
+img { height: auto; }
+a { color: inherit; }
+h1, h2, h3 { margin: 0; font-family: var(--f-titoli); font-weight: 700; line-height: 1.04; letter-spacing: -.005em; }
+p { margin: 0 0 1em; }
+button { font: inherit; }
+:focus-visible { outline: 3px solid var(--giallo); outline-offset: 3px; }
+.salta-al-testo { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 16px; background: var(--giallo); color: var(--ink); font-weight: 700; text-decoration: none; border-radius: 4px; }
+.salta-al-testo:focus { top: 10px; }
+.intero { white-space: nowrap; }
+
+/* ══════════ la targhetta avvitata (come sul loro murale) ══════════ */
+.targa { display: inline-block; margin: 0; padding: .42em .95em .3em; background: var(--viti), var(--carta); color: var(--ink); border: 2.5px solid var(--ink); border-radius: 3px; font: 400 15px/1.25 var(--f-targhe); letter-spacing: .05em; text-transform: uppercase; }
+.targa--sottile { font-size: 13px; letter-spacing: .07em; }
+.targa--bottone { cursor: pointer; font-size: 14px; }
+.targa--bottone:hover { background: var(--viti), var(--schiuma); }
+.targa--bottone[disabled] { cursor: default; opacity: .55; }
+/* «Rifai il piano» c'è dal primo disegno (niente salto quando arriva il codice), spento finché la firma non ha finito;
+   senza JS e con reduced-motion non serve */
+.no-js #rifaiPiano { display: none; }
+@media (prefers-reduced-motion: reduce) { #rifaiPiano { display: none; } }
+
+/* ══════════ bottoni ══════════ */
+.azioni { display: flex; flex-wrap: wrap; gap: 10px; margin: 26px 0 0; }
+.bottone { display: inline-flex; align-items: center; justify-content: center; gap: .45em; min-height: 48px; padding: 12px 22px; border: 2.5px solid var(--crema); border-radius: 999px; color: var(--crema); font: 600 15px/1.2 var(--f-testo); text-decoration: none; transition: background .2s, color .2s; }
+.bottone:hover { background: rgba(244, 232, 210, .14); }
+.bottone--pieno { background: var(--giallo); border-color: var(--giallo); color: var(--ink); }
+.bottone--pieno:hover { background: #F6C443; }
+.bottone--vuoto { border-color: transparent; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; padding-left: 8px; padding-right: 8px; }
+.bottone--scuro { border-color: var(--ink); background: var(--ink); color: var(--crema); }
+.bottone--scuro:hover { background: #3A2A20; }
+.bottone--vuoto-scuro { border-color: var(--ink); color: var(--ink); }
+.bottone--vuoto-scuro:hover { background: rgba(27, 20, 16, .08); }
+.stato { display: inline-flex; align-items: center; gap: 8px; margin: 22px 0 0; font-size: 15px; }
+.stato::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: currentColor; opacity: .5; }
+.stato.is-aperto::before { background: #7BD37B; opacity: 1; box-shadow: 0 0 0 3px rgba(123, 211, 123, .25); }
+
+/* ══════════ testata: il nero del bancone, il logo giallo ══════════ */
+.testata { position: fixed; inset: 0 0 auto; z-index: 50; height: var(--testata-h); display: flex; align-items: center; gap: 16px; padding: 0 var(--gutter); background: var(--nero); color: var(--crema); border-bottom: 3px solid var(--ink); }
+.marchio { display: block; flex: 0 0 auto; width: 124px; color: var(--giallo); }
+.marchio svg { width: 100%; height: auto; }
+.indice { display: none; margin-left: auto; gap: 4px; }
+.indice a { padding: 8px 10px; border-radius: 4px; font: 400 14px/1 var(--f-targhe); letter-spacing: .05em; text-transform: uppercase; text-decoration: none; color: var(--crema); }
+.indice a:hover, .indice a[aria-current] { background: var(--giallo); color: var(--ink); }
+.testata__destra { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.lingue { display: flex; gap: 2px; }
+.lingue button { min-width: 36px; min-height: 40px; padding: 8px 6px; border: 0; border-radius: 4px; background: transparent; color: var(--crema); font: 600 13px/1 var(--f-testo); letter-spacing: .06em; cursor: pointer; opacity: .6; }
+.lingue button[aria-pressed="true"] { opacity: 1; box-shadow: inset 0 -2px 0 var(--giallo); }
+.testata__chiama { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 16px; border-radius: 999px; background: var(--giallo); color: var(--ink); font: 700 14px/1 var(--f-testo); text-decoration: none; }
+.burger { display: inline-flex; flex-direction: column; justify-content: center; gap: 5px; width: 44px; height: 44px; padding: 10px; border: 2px solid rgba(244, 232, 210, .5); border-radius: 6px; background: transparent; cursor: pointer; }
+.burger span { display: block; height: 2px; background: var(--crema); border-radius: 2px; transition: transform .2s, opacity .2s; }
+.burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.indice-mobile { position: fixed; top: var(--testata-h); left: 0; right: 0; z-index: 49; max-height: calc(100vh - var(--testata-h)); overflow-y: auto; padding: 10px var(--gutter) 24px; background: var(--nero); border-bottom: 3px solid var(--ink); }
+.indice-mobile[hidden] { display: none; }
+.indice-mobile a { display: flex; align-items: baseline; gap: 12px; padding: 13px 4px; border-bottom: 1px solid rgba(244, 232, 210, .14); color: var(--crema); text-decoration: none; font-size: 16px; }
+.indice-mobile b { min-width: 7.5em; font: 400 16px/1.2 var(--f-targhe); color: var(--giallo); text-transform: uppercase; letter-spacing: .04em; }
+.indice-mobile__chiama { justify-content: center; margin: 4px 0 10px; border: 0 !important; border-radius: 999px; background: var(--giallo); color: var(--ink) !important; font-weight: 700; }
+
+/* ══════════ l'apertura: il muro terracotta con l'impianto ══════════ */
+.apertura { position: relative; display: grid; gap: 34px; padding: calc(var(--testata-h) + 36px) var(--gutter) 56px; background: var(--terra); color: var(--crema); overflow: hidden; }
+/* l'intonaco: due aloni più chiari e più scuri, come la luce delle lampadine sulla parete */
+.apertura::before { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 78% 30%, rgba(255, 196, 120, .16), transparent 70%), radial-gradient(70% 60% at 10% 100%, rgba(40, 10, 4, .28), transparent 70%); pointer-events: none; }
+.apertura > * { position: relative; }
+.apertura__titolo { margin: 18px 0 18px; font-size: clamp(50px, 12vw, 104px); line-height: .98; color: var(--crema); }
+.apertura__lede { max-width: 34em; font-size: clamp(17px, 2.2vw, 20px); line-height: 1.55; }
+.fatti { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 18px 0 0; padding: 0; list-style: none; font-size: 15px; }
+.fatti b { font: 700 19px/1 var(--f-titoli); margin-right: 4px; }
+.impianto { margin: 0; justify-self: center; width: 100%; max-width: 480px; }
+/* telefono e tablet: l'impianto subito sotto il titolo, la firma nella prima schermata (come la ciocca di #227) */
+@media (max-width: 999px) {
+  .apertura { gap: 0; }
+  .apertura__testo { display: contents; }
+  .apertura__testo > .targa { order: 1; justify-self: start; }
+  .apertura__titolo { order: 2; }
+  .impianto { order: 3; max-width: min(300px, 78vw); margin: 0 auto 26px; }
+  .apertura__lede { order: 4; }
+  .apertura .azioni { order: 5; margin-top: 8px; }
+  .apertura .stato { order: 6; justify-self: start; }
+  .apertura .fatti { order: 7; }
+}
+.impianto__didascalia { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 16px; margin-top: 8px; font: 700 clamp(18px, 2.4vw, 22px)/1.2 var(--f-titoli); color: var(--crema); }
+
+/* ══════════ il diagramma: il giallo delle tovagliette, un solo tubo ══════════ */
+.diagramma { position: relative; padding: 60px 0 70px; background: var(--giallo); }
+.diagramma__corpo { position: relative; max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); }
+/* il tubo: dal terminale d'inizio al terminale di fine, sempre pieno di birra */
+.diagramma__corpo::before { content: ''; position: absolute; top: 24px; bottom: 40px; left: calc(var(--gutter) + var(--tubo-x) - var(--tubo) / 2); width: var(--tubo); background: var(--tubo-v); }
+.terminale { position: relative; z-index: 1; display: inline-block; margin: 0; padding: 12px 26px 10px; background: var(--carta); border: 3px solid var(--ink); border-radius: 999px; font: 400 clamp(20px, 3.4vw, 30px)/1.1 var(--f-targhe); letter-spacing: .03em; text-transform: uppercase; color: var(--ink); }
+.diagramma__testa { position: relative; z-index: 1; padding-bottom: 18px; }
+.diagramma__istruzioni { max-width: 34em; margin: 18px 0 0 calc(var(--tubo-x) + 34px); font-size: 16px; }
+.caso { position: relative; z-index: 1; display: grid; grid-template-columns: calc(var(--tubo-x) * 2) minmax(0, 1fr); column-gap: 14px; padding: 46px 0 30px; }
+/* la flangia sul tubo, in cima a ogni tratto */
+.caso::before { content: ''; position: absolute; top: 12px; left: calc(var(--tubo-x) - 16px); width: 32px; height: 8px; background: var(--crema); border: 2.5px solid var(--ink); border-radius: 2px; }
+.caso__nodo { position: relative; grid-column: 1; }
+.valvola-nodo { position: absolute; top: 14px; left: calc(var(--tubo-x) - 28px); width: 56px; height: 56px; overflow: visible; }
+/* il ramo del sì: dalla bocca destra della valvola fino alla parete del serbatoio */
+.caso__nodo::after { content: ''; position: absolute; top: calc(14px + 28px - var(--tubo) / 2); left: calc(var(--tubo-x) + 22px); right: -17px; height: var(--tubo); background: var(--tubo-o); }
+.caso__si, .caso__no { position: absolute; z-index: 1; padding: 4px 9px 2px; background: var(--carta); border: 2px solid var(--ink); border-radius: 3px; font: 400 13px/1.2 var(--f-targhe); letter-spacing: .06em; text-transform: uppercase; }
+.caso__si { display: none; }
+/* sul telefono il «no» è una fascetta sul tubo, sotto la valvola (a destra non c'è posto) */
+.caso__no { top: 80px; left: calc(var(--tubo-x) - 17px); width: 34px; padding: 3px 0 1px; text-align: center; font-size: 11px; }
+.serbatoio { --pt: 40px; position: relative; grid-column: 2; min-width: 0; padding: var(--pt) 34px 24px 18px; background: var(--crema); border: 3px solid var(--ink); border-radius: 26px 26px 10px 10px; }
+/* i ribattini lungo il bordo in alto e il tratteggio a incisione sul fianco destro, come i serbatoi del murale */
+.serbatoio::before { content: ''; position: absolute; top: 10px; left: 26px; right: 26px; height: 6px; background: radial-gradient(circle, var(--ink) 0 1.7px, transparent 2.2px) 0 0 / 14px 6px repeat-x; opacity: .75; pointer-events: none; }
+.serbatoio::after { content: ''; position: absolute; top: 22px; bottom: 16px; right: 8px; width: 16px; background: repeating-linear-gradient(90deg, rgba(27, 20, 16, .3) 0 1px, transparent 1px 4px); pointer-events: none; }
+/* la domanda avvitata a cavallo del bordo: nel flusso (non assoluta), così se va a capo spinge giù il titolo */
+/* display: table (blocco che si stringe sul testo): su un inline-block il margine negativo non lo tirava su */
+.targa--domanda { position: relative; z-index: 1; display: table; margin: calc(-1 * var(--pt) - 21px) 0 22px -4px; font-size: clamp(16px, 2.6vw, 22px); letter-spacing: .04em; }
+/* 7.6vw: a 320 px «maxischermi.» a 30 px usciva di 20 px dal serbatoio (troncati-check) */
+.serbatoio__titolo { margin: 0 0 18px; font-size: clamp(24px, 7.6vw, 50px); max-width: 17em; }
+.serbatoio__griglia { display: grid; gap: 22px; }
+.serbatoio__testo { max-width: 38em; }
+.serbatoio__testo p { font-size: 17px; }
+.fatti--targhe { gap: 8px; margin: 4px 0 20px; }
+.fatti--targhe li { padding: .45em .85em .35em; background: var(--viti), var(--carta); border: 2px solid var(--ink); border-radius: 3px; font: 400 13px/1.2 var(--f-targhe); letter-spacing: .04em; text-transform: uppercase; }
+.azioni--serbatoio { margin-top: 0; }
+.serbatoio__lato { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.serbatoio__lato .fatti--targhe { margin: 0; }
+/* la fila di foto: sul telefono due per riga (la larga su tutta la riga, le quattro del cibo quadrate) */
+.serbatoio__foto--fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; align-items: start; }
+.serbatoio__foto--fila .foto--largo { grid-column: 1 / -1; }
+.serbatoio__foto--quattro .foto__apri img { aspect-ratio: 1 / 1; object-fit: cover; }
+.foto--lato { width: 100%; max-width: 300px; }
+.foto { margin: 0; }
+.foto__apri { display: block; width: 100%; padding: 0; border: 3px solid var(--ink); border-radius: 8px; overflow: hidden; background: var(--ink); cursor: zoom-in; }
+.foto__apri img { width: 100%; transition: transform .5s ease; }
+.foto__apri:hover img { transform: scale(1.03); }
+.foto figcaption { margin-top: 7px; font-size: 14px; line-height: 1.35; color: #4A3A2E; }
+.citazione { margin: 22px 0 0; padding: 16px 18px 12px; border-left: 5px solid var(--birra); background: rgba(27, 20, 16, .05); }
+.citazione p { margin: 0 0 6px; font: 700 clamp(20px, 3vw, 26px)/1.25 var(--f-titoli); }
+.citazione footer { font-size: 14px; color: #4A3A2E; }
+.terminale--fine { margin-top: 26px; }
+/* i due maxischermi, disegnati */
+.schermi { margin: 0; max-width: 440px; }
+.schermi__svg { width: 100%; height: auto; }
+.schermo__cornice { fill: var(--ink); }
+.schermo__campo { fill: #2E6B45; stroke: var(--ink); stroke-width: 2; }
+.schermo__righe { fill: none; stroke: var(--crema); stroke-width: 2; opacity: .9; }
+.schermo__gioco { fill: none; stroke: var(--giallo); stroke-width: 3; stroke-dasharray: 7 5; stroke-linecap: round; }
+.schermo__punta { fill: none; stroke: var(--giallo); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.schermo__x, .schermo__o { font: 400 17px/1 var(--f-targhe); fill: var(--crema); }
+.schermo__piede { fill: var(--ink); }
+.schermi__mensola { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; }
+
+/* ══════════ le recensioni: sul nero del bancone ══════════ */
+.recensioni { display: grid; gap: 34px; padding: 70px var(--gutter) 64px; background: var(--nero); color: var(--crema); }
+.recensioni__fondo { margin: 0; }
+.recensioni__fondo img { width: 100%; border-radius: 10px; opacity: .92; }
+.recensioni h2 { font-size: clamp(34px, 7vw, 60px); color: var(--crema); }
+.recensioni__voto { margin: 14px 0 26px; font-size: 16px; }
+.recensioni__voto b { font: 700 32px/1 var(--f-titoli); color: var(--giallo); margin-right: 6px; }
+.recensioni__elenco { display: grid; gap: 22px; }
+.recensione { margin: 0; padding: 18px 20px 16px; background: rgba(244, 232, 210, .06); border: 2px solid rgba(244, 232, 210, .22); border-radius: 10px; }
+.recensione p { margin: 0 0 10px; font-size: 16px; line-height: 1.6; }
+.recensione footer { font-size: 14px; color: var(--giallo); }
+.taglio { color: rgba(244, 232, 210, .6); }
+.recensioni .nota { margin-top: 20px; font-size: 14px; color: rgba(244, 232, 210, .7); }
+
+/* ══════════ dove e quando: la fine del diagramma, sul terracotta ══════════ */
+.dove { padding: 70px var(--gutter) 60px; background: var(--terra); color: var(--crema); }
+.dove h2 { font-size: clamp(36px, 7vw, 62px); margin-bottom: 26px; }
+.dove__griglia { display: grid; gap: 30px; }
+.dove__indirizzo { font: 700 26px/1.2 var(--f-titoli); }
+.orari { width: 100%; max-width: 440px; margin: 20px 0 6px; border-collapse: collapse; font-size: 16px; }
+.orari caption { text-align: left; font: 400 14px/1 var(--f-targhe); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; }
+.orari th, .orari td { padding: 7px 8px; text-align: left; border-bottom: 1px solid rgba(244, 232, 210, .22); }
+.orari thead th { font: 400 12px/1 var(--f-targhe); letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+.orari tbody th { font-weight: 600; }
+.orari tr.is-today { background: rgba(240, 178, 31, .2); }
+.orari tr.is-today th::after { content: ' ●'; color: var(--giallo); font-size: 12px; }
+.dove__contatti { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 18px; }
+.dove__contatti a { text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.dove__social { margin-top: 20px; }
+.mappa { border: 3px solid var(--ink); border-radius: 10px; overflow: hidden; background: var(--ink); }
+.mappa iframe { display: block; width: 100%; height: 360px; border: 0; }
+.domande { max-width: 760px; margin-top: 44px; }
+.domande h3 { font-size: 26px; margin-bottom: 12px; }
+.domande details { border-top: 1px solid rgba(244, 232, 210, .3); }
+.domande details:last-child { border-bottom: 1px solid rgba(244, 232, 210, .3); }
+.domande summary { padding: 14px 4px; cursor: pointer; font-weight: 600; font-size: 17px; }
+.domande details p { padding: 0 4px 14px; }
+
+/* ══════════ piede ══════════ */
+.piede { padding: 50px var(--gutter) 60px; background: var(--nero); color: rgba(244, 232, 210, .82); text-align: center; }
+.piede__logo { width: min(250px, 70%); margin: 0 auto 22px; color: var(--giallo); }
+.piede__logo svg { width: 100%; height: auto; }
+.piede p { margin: 0 auto 12px; max-width: 46em; font-size: 14px; }
+.piede__su { font: 400 13px/1 var(--f-targhe); letter-spacing: .08em; text-transform: uppercase; }
+
+/* ══════════ lightbox ══════════ */
+#lightbox { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(21, 17, 14, .95); }
+#lightbox[hidden] { display: none !important; }
+#lightbox img { max-width: min(1300px, 100%); max-height: 88vh; width: auto; border: 3px solid var(--ink); border-radius: 8px; }
+#lightboxClose { position: absolute; top: 14px; right: 16px; width: 48px; height: 48px; border: 2px solid rgba(244, 232, 210, .6); border-radius: 50%; background: transparent; color: var(--crema); font-size: 32px; line-height: 1; cursor: pointer; }
+
+/* ══════════ reveal (plumbing) ══════════ */
+.js .reveal { opacity: 0; }
+.js .reveal.in-view { opacity: 1; }
+html:not(.js) .reveal { opacity: 1; }
+.reduced-motion .reveal { opacity: 1 !important; }
+
+/*IMPIANTO*/
+/* l'impianto della firma e le valvole del diagramma (fonte: _runs/pianob-milano/impianto.css, iniettato da _pbm_inietta.mjs) */
+.impianto__svg { display: block; width: 100%; height: auto; overflow: visible; }
+.fusto__corpo, .valvola__corpo { fill: var(--crema, #F4E8D2); stroke: var(--ink, #1B1410); stroke-width: 3; stroke-linejoin: round; }
+.incisione line { stroke: var(--ink, #1B1410); stroke-width: .9; opacity: .5; }
+.fusto__cerchio { fill: none; stroke: var(--ink, #1B1410); stroke-width: 2.4; }
+.viti circle { fill: var(--ink, #1B1410); }
+.targa-svg rect { fill: #FBF3E3; stroke: var(--ink, #1B1410); stroke-width: 2.4; }
+.targa-svg text { font-family: 'Walter Turncoat', 'Comic Sans MS', cursive; font-size: 16px; fill: var(--ink, #1B1410); text-anchor: middle; letter-spacing: .04em; }
+.tubo__ferro { fill: none; stroke: var(--ink, #1B1410); stroke-width: 22; stroke-linejoin: round; }
+.tubo__vuoto { fill: none; stroke: var(--crema, #F4E8D2); stroke-width: 15.5; stroke-linejoin: round; }
+.birra { fill: none; stroke: var(--birra, #E39A24); stroke-width: 8.5; stroke-linejoin: round; }
+.tubo__flange rect, .valvola__bocca { fill: var(--crema, #F4E8D2); stroke: var(--ink, #1B1410); stroke-width: 2.4; }
+.volantino__anello { fill: none; stroke: var(--ink, #1B1410); stroke-width: 4; }
+.volantino line, .volantino__raggio { stroke: var(--ink, #1B1410); stroke-width: 3; stroke-linecap: round; }
+.volantino__mozzo { fill: var(--ink, #1B1410); }
+.staffa { fill: none; stroke: var(--ink, #1B1410); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.freccia { fill: var(--ink, #1B1410); }
+.lettera__spessore { fill: #5A2F18; fill-rule: evenodd; }
+.lettera__faccia { fill: url(#g-rame); fill-rule: evenodd; }
+.lettera__filo { fill: none; stroke: #F2C38F; stroke-width: 1.4; opacity: .6; }
+.lampada__alone { fill: url(#g-alone); }
+.lampada__zoccolo { fill: #3A2416; }
+.lampada__vetro { fill: #FFF1C4; }
+.lampada__riflesso { fill: #fff; opacity: .9; }
+.schiuma { fill: var(--schiuma, #FFF4DA); stroke: var(--ink, #1B1410); stroke-width: 1.2; opacity: 0; }
+/*/IMPIANTO*/
+/*IMPIANTO-ATTESA*/
+/* lo stato d'attesa della firma (classe firma-attesa dell'head): tubi vuoti, lampadine spente */
+.firma-attesa #birra-p0{stroke-dasharray:50 50;stroke-dashoffset:50}
+.firma-attesa #birra-si{stroke-dasharray:182 182;stroke-dashoffset:182}
+.firma-attesa #birra-no{stroke-dasharray:688.5 688.5;stroke-dashoffset:688.5}
+.firma-attesa .lampada__alone{opacity:0}
+.firma-attesa .lampada__vetro{fill:#6E5238}
+.firma-attesa .lampada__riflesso{opacity:.35}
+.firma-attesa .lettera__faccia{filter:brightness(.7)}
+/*/IMPIANTO-ATTESA*/
+
+/* ══════════ telefono piccolo ══════════ */
+@media (max-width: 419px) {
+  .testata { gap: 8px; }
+  .marchio { width: 104px; }
+  .testata__chiama { display: none; }
+  .lingue button { min-width: 32px; padding: 8px 4px; }
+  .serbatoio { padding-left: 14px; padding-right: 28px; }
+  .serbatoio__foto--due { grid-template-columns: 1fr; }
+  .serbatoio__foto--due .foto--largo { order: 0; }
+}
+
+/* ══════════ tablet ══════════ */
+@media (min-width: 700px) {
+  :root { --gutter: 32px; --tubo-x: 44px; }
+  .valvola-nodo { top: 8px; left: calc(var(--tubo-x) - 40px); width: 80px; height: 80px; }
+  .caso__nodo::after { top: calc(8px + 40px - var(--tubo) / 2); left: calc(var(--tubo-x) + 32px); right: -25px; }
+  .caso { column-gap: 22px; padding: 60px 0 40px; }
+  .caso__si { display: block; top: 12px; left: calc(var(--tubo-x) + 44px); }
+  .caso__no { top: 104px; left: calc(var(--tubo-x) + 18px); width: auto; padding: 4px 9px 2px; font-size: 13px; }
+  .serbatoio { --pt: 48px; padding: var(--pt) 40px 30px 32px; }
+  .targa--domanda { margin-left: -6px; }
+  /* la fila di foto alla stessa altezza: ognuna larga quanto il suo formato (--ar = larghezza / altezza) */
+  .serbatoio__foto--fila { display: flex; gap: 14px; }
+  .serbatoio__foto--fila .foto { flex: var(--ar, 1) 1 0; min-width: 0; }
+  .serbatoio__foto--quattro .foto { flex: 1 1 0; }
+  .serbatoio__griglia { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 30px; align-items: start; }
+  .serbatoio__griglia--largo { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; }
+  .recensioni__elenco { grid-template-columns: 1fr 1fr; column-gap: 26px; }
+  .impianto { max-width: 460px; }
+}
+
+/* ══════════ desktop ══════════ */
+@media (min-width: 1000px) {
+  :root { --gutter: 48px; --tubo-x: 60px; }
+  .apertura { grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); align-items: center; column-gap: 40px; min-height: 100vh; padding-top: calc(var(--testata-h) + 30px); padding-bottom: 40px; }
+  .apertura__testo { padding-bottom: 30px; }
+  .impianto { max-width: none; height: min(calc(100vh - var(--testata-h) - 90px), 700px); display: flex; flex-direction: column; justify-content: center; }
+  .impianto__svg { height: calc(100% - 60px); width: auto; margin: 0 auto; }
+  .serbatoio { --pt: 52px; padding: var(--pt) 48px 34px 44px; }
+  .serbatoio__griglia { gap: 44px; }
+  .recensioni { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); column-gap: 56px; align-items: start; padding-left: calc(var(--gutter) + 20px); padding-right: calc(var(--gutter) + 20px); }
+  .recensioni__fondo { position: sticky; top: calc(var(--testata-h) + 30px); }
+  .dove { padding-left: calc(var(--gutter) + 20px); padding-right: calc(var(--gutter) + 20px); }
+  .dove__griglia { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; }
+  .mappa iframe { height: 460px; }
+}
+@media (min-width: 1120px) {
+  .indice { display: flex; }
+  .burger { display: none; }
+  .testata__destra { margin-left: 8px; }
+}
+
+@media print {
+  .testata, #lightbox, .indice-mobile { display: none !important; }
+  .js .reveal { opacity: 1 !important; }
+}
